@@ -38,12 +38,34 @@ log() {
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
 
+# Check if container is running
+log "Checking container status"
+container_status=$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null)
+was_running=false
+
+if [[ "$container_status" == "true" ]]; then
+    log "Container is running, stopping it for backup"
+    was_running=true
+    docker stop "$CONTAINER_NAME" >/dev/null
+    if [[ $? -ne 0 ]]; then
+        echo "Error stopping container $CONTAINER_NAME"
+        exit 1
+    fi
+else
+    log "Container is not running, proceeding with backup"
+fi
+
 # Get volume information for the container
 log "Getting volume information for container: $CONTAINER_NAME"
 volumes=$(docker inspect -f '{{range .Mounts}}{{.Name}}:{{.Source}}{{"\n"}}{{end}}' "$CONTAINER_NAME")
 
 if [[ -z "$volumes" ]]; then
     echo "No volumes found for container $CONTAINER_NAME"
+    # Restart container if it was running before
+    if [[ "$was_running" == "true" ]]; then
+        log "Restarting container"
+        docker start "$CONTAINER_NAME" >/dev/null
+    fi
     exit 1
 fi
 
@@ -66,6 +88,18 @@ echo "$volumes" | while IFS=: read -r volume_name volume_path; do
             echo "Successfully created backup: $backup_file"
         else
             echo "Error creating backup for volume: $volume_name"
+            # Restart container if it was running before
+            if [[ "$was_running" == "true" ]]; then
+                log "Restarting container due to error"
+                docker start "$CONTAINER_NAME" >/dev/null
+            fi
+            exit 1
         fi
     fi
 done
+
+# Restart container if it was running before
+if [[ "$was_running" == "true" ]]; then
+    log "Restarting container after successful backup"
+    docker start "$CONTAINER_NAME" >/dev/null
+fi
