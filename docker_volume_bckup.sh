@@ -1,30 +1,52 @@
 #!/bin/zsh
 
-# Directory where backups will be stored
-OUTPUT_DIR="${HOME}/docker_volume_backups"
-
 # Parse arguments
-if [[ $# -lt 1 ]]; then
-    echo "Usage: $0 [--verbose] CONTAINER_NAME"
-    exit 1
-fi
-
 VERBOSE=0
 CONTAINER_NAME=""
+OUTPUT_DIR=""
 
-for arg in "$@"; do
-    case $arg in
+print_usage() {
+    echo "Usage: $0 --output-dir DIR [--verbose] CONTAINER_NAME"
+    echo "Options:"
+    echo "  --output-dir DIR    Directory where backups will be stored"
+    echo "  --verbose           Enable verbose logging"
+    echo "  CONTAINER_NAME      Name of the Docker container to backup"
+    exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
         --verbose)
             VERBOSE=1
+            shift
+            ;;
+        --output-dir)
+            OUTPUT_DIR="$2"
+            shift 2
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            print_usage
             ;;
         *)
-            CONTAINER_NAME=$arg
+            CONTAINER_NAME="$1"
+            shift
             ;;
     esac
 done
 
 if [[ -z "$CONTAINER_NAME" ]]; then
     echo "Error: Container name is required"
+    print_usage
+fi
+
+if [[ -z "$OUTPUT_DIR" ]]; then
+    echo "Error: Output directory is required (use --output-dir)"
+    print_usage
+fi
+
+if [[ ! -d "$OUTPUT_DIR" ]]; then
+    echo "Error: Output directory does not exist: $OUTPUT_DIR"
     exit 1
 fi
 
@@ -35,8 +57,6 @@ log() {
     fi
 }
 
-# Create output directory if it doesn't exist
-mkdir -p "$OUTPUT_DIR"
 
 # Check if container is running
 log "Checking container status"
