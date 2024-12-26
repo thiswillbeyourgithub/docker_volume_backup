@@ -131,3 +131,6 @@ if [[ "$was_running" == "true" ]]; then
     log "Restarting container after successful backup"
     sudo docker start "$CONTAINER_NAME" >/dev/null
 fi
+
+log "Done"
+exit 0
