@@ -78,6 +78,12 @@ echo "$volumes" | while IFS=: read -r volume_name volume_path; do
         timestamp=$(date '+%Y%m%d_%H%M%S')
         backup_file="${backup_dir}/${timestamp}.tar.gz"
         
+        # Move previous backup to trash if it exists
+        if ls "${backup_dir}"/*.tar.gz >/dev/null 2>&1; then
+            log "Moving previous backup to trash"
+            trash "${backup_dir}"/*.tar.gz
+        fi
+        
         log "Creating backup of volume $volume_name"
         log "Source path: $volume_path"
         log "Destination: $backup_file"
