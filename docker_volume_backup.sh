@@ -94,7 +94,7 @@ fi
 # Create backups for each volume
 echo "$volumes" | while IFS=: read -r volume_name volume_path; do
     if [[ -n "$volume_name" && -n "$volume_path" ]]; then
-        backup_dir="${OUTPUT_DIR}/${volume_name}"
+        backup_dir="${OUTPUT_DIR}/${CONTAINER_NAME}/${volume_name}"
         mkdir -p "$backup_dir"
         
         timestamp=$(date '+%Y%m%d_%H%M%S')
