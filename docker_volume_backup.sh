@@ -52,8 +52,10 @@ fi
 
 # Logging function
 log() {
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    logger -t "docker-volume-backup" "$1"
     if [[ $VERBOSE -eq 1 ]]; then
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+        echo "[$timestamp] $1"
     fi
 }
 
