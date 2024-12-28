@@ -113,7 +113,7 @@ echo "$volumes" | while IFS=: read -r volume_name volume_path; do
         sudo tar -czf "$backup_file" -C "$volume_path" .
         
         if [[ $? -eq 0 ]]; then
-            echo "Successfully created backup: $backup_file"
+            log "Successfully created backup: $backup_file"
         else
             echo "Error creating backup for volume: $volume_name"
             # Restart container if it was running before
